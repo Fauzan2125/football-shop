@@ -1,6 +1,6 @@
 Aplikasi Football Shop - Moy's Football Store
 
-Link aplikasi yang sudah di-deploy: [URL PWS kamu]
+https://ahmad-fauzan45-footballshop.pbp.cs.ui.id
 
 A. - Jelaskan bagaimana cara kamu mengimplementasikan checklist di atas secara step-by-step (bukan hanya sekadar mengikuti tutorial). -
 
