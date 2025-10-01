@@ -1,0 +1,50 @@
+{% load static %}
+<div class="group relative">
+    <article class="bg-white rounded-lg border border-gray-200 overflow-hidden transition-all duration-300 group-hover:shadow-xl group-hover:-translate-y-1">
+        <a href="{% url 'main:show_product' product.id %}" class="block">
+            <div class="aspect-[4/3] relative overflow-hidden">
+                {% if product.thumbnail %}
+                    <img src="{{ product.thumbnail }}" alt="{{ product.name }}" class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105">
+                {% else %}
+                    <div class="w-full h-full bg-gray-200 flex items-center justify-center">
+                        <span class="text-gray-400">No Image</span>
+                    </div>
+                {% endif %}
+                
+                {% if product.stock == 0 %}
+                    <div class="absolute top-3 left-3">
+                        <span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-semibold bg-gray-600 text-white">
+                            Out of Stock
+                        </span>
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="p-4">
+                <div class="flex justify-between items-center text-xs text-gray-500 mb-2">
+                    <span class="font-semibold">{{ product.brand|upper|default:"NO BRAND" }}</span>
+                    <span>{{ product.get_category_display }}</span>
+                </div>
+                
+                <h3 class="text-base font-bold text-gray-800 mb-3 line-clamp-2 leading-tight h-12">
+                    {{ product.name }}
+                </h3>
+                
+                <p class="text-lg font-extrabold text-black-700">
+                    Rp {{ product.price|floatformat:"0" }}
+                </p>
+            </div>
+        </a>
+    </article>
+
+    {% if user.is_authenticated and product.user == user %}
+        <div class="absolute top-3 right-3 z-10 flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+            <a href="{% url 'main:edit_product' product.id %}" class="bg-white/80 backdrop-blur-sm text-gray-800 rounded-full p-2 hover:bg-white shadow-md">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.5L14.732 3.732z" /></svg>
+            </a>
+            <a href="{% url 'main:delete_product' product.id %}" class="bg-white/80 backdrop-blur-sm text-red-600 rounded-full p-2 hover:bg-white shadow-md">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+            </a>
+        </div>
+    {% endif %}
+</div>

@@ -145,7 +145,194 @@ F. - Apakah ada feedback untuk asdos di tutorial 2 yang sudah kalian kerjakan? -
 Link Screenshoot Postman:
 https://drive.google.com/drive/folders/1Bh7MzWwoqIGo3-CqQlO00IzbBvTO0A2w?usp=sharing
 
+TUGAS 4
 
+A. - Apa itu Django AuthenticationForm? Jelaskan juga kelebihan dan kekurangannya. -
+Django AuthenticationForm adalah sebuah form bawaan dari Django yang secara khusus dirancang untuk menangani proses login pengguna. Form ini sudah jadi dan siap pakai, isinya ada dua field utama: username dan password.
 
+Kelebihan:
+- Cepat & Mudah: Kamu tidak perlu membuat form login dari nol. Cukup impor dan gunakan.
+- Aman: Form ini sudah dilengkapi validasi keamanan dasar, seperti mengecek apakah username dan password yang dimasukkan cocok, dan memastikan akun pengguna tersebut aktif.
+- Terintegrasi: Terhubung langsung dengan sistem autentikasi Django, sehingga proses validasi dan memasukkan user ke dalam session menjadi sangat mudah.
 
+Kekurangan:
+- Kurang Fleksibel: Secara default, form ini hanya menerima username dan password. Jika kamu ingin login menggunakan email sebagai gantinya, kamu perlu melakukan kustomisasi lebih lanjut.
+- Tampilan Standar: Tampilannya sangat dasar, jadi kamu perlu menambahkan CSS sendiri agar terlihat bagus dan menyatu dengan desain web-mu.\
+
+B. - Apa perbedaan antara autentikasi dan otorisasi? Bagaiamana Django mengimplementasikan kedua konsep tersebut? -
+Meskipun sering disebut bersamaan, keduanya adalah konsep yang berbeda.
+
+1. Autentikasi (Authentication): "Kamu siapa?"
+Ini adalah proses memverifikasi identitas seseorang. Saat kita memasukkan username dan password untuk login, sistem sedang melakukan autentikasi untuk memastikan kamu adalah benar-benar orang yang kamu klaim.
+- Implementasi di Django: Django menanganinya lewat sistem django.contrib.auth. Fitur seperti login(), logout(), AuthenticationForm, dan model User adalah bagian dari sistem ini.
+
+2. Otorisasi (Authorization) : "Kamu boleh ngapain aja?"
+Ini adalah proses menentukan hak akses yang dimiliki oleh pengguna yang identitasnya sudah terverifikasi. Setelah kamu berhasil login (autentikasi), sistem akan mengecek apakah kamu punya izin untuk melakukan aksi tertentu, misalnya menghapus produk atau mengakses halaman admin.
+
+- Implementasi di Django: Django menanganinya melalui sistem perizinan (permissions). Contohnya adalah dekorator @login_required yang hanya memberi izin akses halaman kepada pengguna yang sudah login, atau user.is_superuser yang mengecek apakah pengguna punya hak akses tertinggi.
+
+C. Apa saja kelebihan dan kekurangan session dan cookies dalam konteks menyimpan state di aplikasi web?
+Cookies dan session adalah dua cara untuk "mengingat" informasi pengguna saat mereka berpindah-pindah halaman di sebuah situs web.
+
+1. Cookies 
+Cara Kerja: Sepotong kecil data yang disimpan di browser pengguna. Setiap kali pengguna mengunjungi situs itu lagi, browser akan mengirimkan kembali cookie tersebut ke server.
+Kelebihan:
+- Persisten: Bisa diatur agar bertahan lama (berhari-hari atau bahkan berbulan-bulan), jadi bisa untuk mengingat login (remember me) atau preferensi tema.
+- Beban Server Ringan: Karena data disimpan di sisi klien, tidak membebani penyimpanan di server.
+Kekurangan:
+- Tidak Aman untuk Data Sensitif: Karena disimpan di browser, isinya bisa dilihat dan dimanipulasi oleh pengguna. Sangat tidak disarankan menyimpan password atau data pribadi di sini.
+- Ukuran Terbatas: Ukuran cookies sangat kecil (sekitar 4KB).
+
+2. Session
+Cara Kerja: Data disimpan di sisi server. Browser pengguna hanya menyimpan sebuah ID unik (session ID) di dalam cookie. Setiap kali pengguna membuat permintaan, session ID dikirim ke server, lalu server akan mencari data sesi yang sesuai dengan ID tersebut.
+Kelebihan:
+- Sangat Aman: Data sensitif (seperti siapa yang sedang login) disimpan di server, sehingga tidak bisa diakses atau diubah oleh pengguna.
+- Ukuran Lebih Besar: Bisa menyimpan data yang jauh lebih besar dibandingkan cookies.
+Kekurangan:
+- Membebani Server: Setiap sesi pengguna akan memakan ruang di penyimpanan dan memori server.
+- Bergantung pada Session ID: Jika session ID di cookie pengguna hilang atau kedaluwarsa, sesi akan berakhir.
+
+D. - Apakah penggunaan cookies aman secara default dalam pengembangan web, atau apakah ada risiko potensial yang harus diwaspadai? Bagaimana Django menangani hal tersebut? -
+Tidak, cookies tidak aman secara default. Karena cookies disimpan di browser dalam bentuk teks biasa, ada beberapa risiko keamanan yang perlu diwaspadai:
+- Cross-Site Scripting (XSS): Penyerang bisa menyisipkan skrip jahat di sebuah halaman web untuk mencuri data dari cookies pengguna.
+- Cross-Site Request Forgery (CSRF): Penyerang bisa "memaksa" browser pengguna untuk melakukan tindakan yang tidak diinginkan (misalnya, transfer uang) di situs lain tempat pengguna sedang login, dengan memanfaatkan cookie sesi yang tersimpan.
+- Session Hijacking: Jika seorang penyerang berhasil mendapatkan session ID milikmu (misalnya melalui jaringan Wi-Fi publik yang tidak aman), mereka bisa "membajak" sesimu dan menyamar sebagai dirimu.
+
+Bagaimana Django Menanganinya?
+Django memiliki beberapa lapisan keamanan bawaan untuk melindungi dari risiko-risiko ini:
+- HttpOnly Cookies: Django secara default mengatur cookie sesi sebagai HttpOnly, yang berarti cookie tersebut tidak bisa diakses oleh JavaScript. Ini secara efektif mencegah pencurian cookie melalui serangan XSS.
+- CSRF Token: Django secara otomatis menyertakan token CSRF di setiap form POST. Server akan memvalidasi token ini untuk memastikan bahwa permintaan tersebut benar-benar berasal dari situs web kita, bukan dari situs lain. Ini adalah perlindungan utama terhadap serangan CSRF.
+- Secure Cookies: Django juga menyediakan opsi untuk mengatur cookies sebagai Secure, yang berarti cookie hanya akan dikirim melalui koneksi HTTPS yang terenkripsi, mencegah penyadapan di jaringan yang tidak aman.
+
+E. - Jelaskan bagaimana cara kamu mengimplementasikan checklist di atas secara step-by-step (bukan hanya sekadar mengikuti tutorial). -
+1. Persiapan Awal: Pertama, saya membuat app baru bernama authentication untuk memisahkan logika terkait pengguna. Lalu, saya mengatur urls.py utama proyek agar menyertakan URL dari app baru ini.
+2. Membuat Fungsi Login, Logout, Register:
+- Register: Saya membuat fungsi register di views.py. Di dalamnya, saya menggunakan UserCreationForm bawaan Django untuk membuat form registrasi. Jika data valid, pengguna baru akan dibuat dan langsung di-login-kan.
+- Login: Untuk fungsi login, saya menggunakan AuthenticationForm. Jika form valid, saya memanggil fungsi login() dari Django untuk memulai sesi pengguna dan menyimpan last_login ke dalam cookie.
+- Logout: Ini yang paling simpel. Saya hanya perlu memanggil fungsi logout() dari Django untuk mengakhiri sesi.
+3. Mengatur URL dan Template: Saya mendaftarkan path untuk ketiga fungsi di atas di authentication/urls.py. Kemudian, saya membuat tiga file HTML (login.html, register.html) dan memberikan styling dasar agar fungsional.
+4. Menghubungkan Product dengan User: Di main/models.py, saya menambahkan ForeignKey ke model User di dalam model Product. Ini artinya, setiap produk sekarang "dimiliki" oleh seorang pengguna. Setelah mengubah model, saya menjalankan makemigrations dan migrate.
+5. Menyesuaikan Logika Aplikasi:
+- Di views.py aplikasi utama, saya menambahkan dekorator @login_required pada fungsi-fungsi yang hanya boleh diakses setelah login (seperti membuat produk).
+- Saat membuat produk baru, saya mengatur agar product.user secara otomatis diisi dengan request.user.
+- Di halaman utama, saya memfilter agar produk yang ditampilkan hanya produk milik pengguna yang sedang login. Saya juga menambahkan kode untuk menampilkan username dan last_login dari cookie.
+6. Membuat Data Dummy: Terakhir, saya mendaftarkan 2 akun pengguna baru dan untuk masing-masing akun, saya membuat 3 data produk melalui aplikasi yang sudah berjalan untuk memenuhi syarat tugas.
+
+TUGAS 5
+
+A. - Jika terdapat beberapa CSS selector untuk suatu elemen HTML, jelaskan urutan prioritas pengambilan CSS selector tersebut! -
  
+Jika sebuah elemen HTML memiliki beberapa selector CSS, browser akan menentukan gaya mana yang akan diterapkan berdasarkan urutan prioritas yang disebut spesifisitas (specificity). Aturan dasarnya adalah, semakin spesifik sebuah selector, semakin tinggi prioritasnya.
+
+Berikut adalah urutan prioritas dari yang tertinggi ke yang terendah:
+
+1. Inline Styles: Atribut style yang ditulis langsung di dalam tag HTML. Ini adalah yang paling spesifik dan akan mengalahkan semua aturan lain.
+
+Contoh: <p style="color: red;">Teks ini pasti merah.</p>
+
+2. ID Selector: Selector yang menggunakan # untuk menargetkan ID unik sebuah elemen.
+
+Contoh: #judul-utama { color: blue; }
+
+3. Class, Attribute, dan Pseudo-class Selectors: Ini termasuk kelas (.nama-kelas), selector atribut ([type="text"]), dan pseudo-class (:hover, :focus).
+
+Contoh: .tombol-submit { background-color: green; }
+
+4. Element dan Pseudo-element Selectors: Ini adalah selector yang paling tidak spesifik, yang menargetkan semua tag dengan nama tertentu (p, div, h1) atau pseudo-element (::before, ::after).
+
+Contoh: p { font-size: 16px; }
+
+B. - Mengapa responsive design menjadi konsep yang penting dalam pengembangan aplikasi web? Berikan contoh aplikasi yang sudah dan belum menerapkan responsive design, serta jelaskan mengapa! -
+Responsive Design adalah sebuah pendekatan dalam desain web yang membuat tampilan halaman web dapat beradaptasi secara otomatis dengan berbagai ukuran layar perangkat, mulai dari desktop besar hingga tablet dan smartphone.
+
+Konsep ini menjadi sangat penting karena beberapa alasan utama:
+
+1. Pengalaman Pengguna (User Experience): Mayoritas pengguna internet saat ini mengakses web melalui perangkat mobile. Desain yang responsif memastikan mereka mendapatkan pengalaman yang nyaman tanpa harus melakukan zoom atau menggeser layar secara horizontal.
+
+2. Peningkatan Jangkauan Audiens: Dengan web yang berfungsi baik di semua perangkat, kita tidak akan kehilangan potensi pengunjung atau pelanggan yang menggunakan perangkat berbeda.
+
+3. SEO (Search Engine Optimization): Mesin pencari seperti Google secara eksplisit memprioritaskan dan memberikan peringkat lebih tinggi untuk situs web yang mobile-friendly. Situs yang tidak responsif akan sulit ditemukan di hasil pencarian.
+
+4. Efisiensi Pengembangan dan Perawatan: Daripada membuat beberapa versi situs web yang berbeda (satu untuk desktop, satu untuk mobile), kita hanya perlu mengelola satu basis kode yang fleksibel.
+
+Contoh Aplikasi yang Sudah Menerapkan Responsive Design:
+
+Tokopedia/Shopee: Jika kita membuka situs Tokopedia di desktop, Kita akan melihat layout dengan banyak kolom, sidebar, dan menu yang lebar. Namun, saat dibuka di smartphone, tampilannya berubah total menjadi satu kolom vertikal, gambar produk menjadi lebih besar, dan navigasi utama disembunyikan di dalam menu "hamburger" (ikon tiga garis). Ini dilakukan agar semua tombol mudah dijangkau oleh jari dan informasi tetap terbaca dengan jelas di layar kecil.
+
+Contoh Aplikasi yang Belum Menerapkan Responsive Design:
+
+SIAK NG adalah contoh sempurna dari aplikasi yang dirancang dengan pola pikir "desktop-first" dan hampir tidak mempertimbangkan pengguna mobile. Saat kita membukanya di HP, yang terjadi bukanlah adaptasi, melainkan seluruh halaman versi desktop "dikecilkan" agar muat di layar HP.
+
+C.- Jelaskan perbedaan antara margin, border, dan padding, serta cara untuk mengimplementasikan ketiga hal tersebut! -
+Ketiga properti ini adalah bagian fundamental dari CSS Box Model, yang mendefinisikan bagaimana elemen HTML dirender sebagai "kotak" di halaman.
+
+1. Padding (Bantalan)
+
+Definisi: Ruang transparan yang berada di dalam border, yaitu antara border dan konten utama elemen (teks/gambar).
+
+Analogi: Seperti bantalan busa di dalam sebuah kotak. Busa tersebut (padding) melindungi isi kotak (konten) dari tepian kotak (border).
+
+2. Border (Garis Tepi)
+
+Definisi: Garis yang mengelilingi sebuah elemen, berada di antara padding dan margin.
+
+Analogi: Seperti bingkai foto. Bingkai ini (border) memiliki ketebalan, warna, dan gaya (misalnya, garis lurus atau putus-putus).
+
+3. Margin (Jarak)
+
+Definisi: Ruang transparan yang berada di luar border. Fungsinya adalah untuk memberikan jarak antara elemen tersebut dengan elemen lain di sekitarnya.
+
+Analogi: Seperti jarak antara satu bingkai foto dengan bingkai foto lainnya yang digantung di dinding.
+
+Cara Implementasi di CSS:
+
+.kotak-produk {
+  // Memberi ruang 20px di dalam border 
+  padding: 20px;
+  
+  // Membuat bingkai setebal 2px dengan gaya solid dan warna hitam 
+  border: 2px solid black;
+  
+  // Memberi jarak 30px di luar border, mendorong elemen lain menjauh 
+  margin: 30px; 
+}
+
+D. - Jelaskan konsep flex box dan grid layout beserta kegunaannya! -
+Flexbox dan Grid adalah dua sistem layout modern di CSS yang dirancang untuk mempermudah pembuatan tata letak halaman yang kompleks dan responsif.
+
+1. Flexbox (Flexible Box Layout)
+
+Konsep: Sistem layout satu dimensi. Artinya, Flexbox sangat baik dalam mengatur item-item dalam satu baris (horizontal) ATAU satu kolom (vertikal).
+
+Kegunaan: Sempurna untuk mengatur komponen-komponen kecil. Contohnya seperti:
+- Membuat navbar di mana logo berada di kiri dan menu di kanan.
+- Menyusun tombol-tombol agar memiliki jarak yang sama.
+- Membuat konten di dalam sebuah kartu menjadi rata tengah secara vertikal.
+
+2. Grid Layout
+
+Konsep: Sistem layout dua dimensi. Grid memungkinkan kita untuk mengatur item dalam baris dan kolom secara bersamaan.
+
+Kegunaan: Ideal untuk tata letak halaman secara keseluruhan. Contohnya seperti:
+- Membuat galeri produk dengan 3 kolom dan beberapa baris.
+- Mendesain layout halaman utama yang memiliki header, sidebar, konten utama, dan footer.
+- Membuat struktur seperti majalah atau koran.
+
+Kesimpulan: Gunakan Flexbox untuk mengatur elemen dalam satu baris/kolom (seperti menu atau tombol), dan gunakan Grid untuk mengatur layout halaman secara keseluruhan. Keduanya seringkali digunakan bersamaan dalam satu halaman.
+
+E. - Jelaskan bagaimana cara kamu mengimplementasikan checklist di atas secara step-by-step (bukan hanya sekadar mengikuti tutorial)! -
+1. Implementasi Fungsi Backend: Saya memulai dengan mengerjakan logika di backend terlebih dahulu. Saya membuat fungsi edit_product dan delete_product di views.py, lalu mendaftarkan path-nya di urls.py. Saya pastikan kedua fungsi ini berjalan dengan benar sebelum lanjut ke frontend.
+
+2. Struktur dan Kustomisasi Halaman Form: Selanjutnya, saya fokus pada halaman yang menggunakan form (tambah, edit, login, register). Saya membuka file HTML masing-masing, lalu menerapkan styling menggunakan kelas-kelas dari Tailwind CSS. Saya pastikan input field, label, dan tombol terlihat menarik dan konsisten.
+
+3. Desain Ulang Halaman Detail: Saya membuka template halaman detail produk. Di sini, saya merombak total strukturnya agar lebih informatif, menambahkan bagian khusus untuk harga, stok, dan merek, serta memperbaiki tata letak deskripsi dan info author agar lebih rapi.
+
+4. Desain Ulang Halaman Utama dan Kartu Produk: Ini adalah bagian terbesar.
+
+Pertama, saya memodifikasi main.html untuk menambahkan logika {% if products %} dan {% else %} untuk menangani kondisi jika belum ada produk.
+
+Kemudian, saya mendesain ulang file card_product.html secara total agar lebih cocok untuk e-commerce, dengan menonjolkan harga dan merek, serta memindahkan tombol Edit/Delete menjadi overlay yang muncul saat hover.
+
+5. Pembuatan Navbar Responsif: Terakhir, saya membuat komponen navbar. Saya merancangnya dengan pendekatan desktop-first, lalu menambahkan kelas md:hidden dan hidden md:block untuk mengatur elemen mana yang muncul atau hilang di layar mobile. Saya juga menambahkan sedikit JavaScript untuk fungsionalitas tombol hamburger dan dropdown user.
+
+6. Finishing dan Penulisan README: Setelah semua halaman terlihat bagus dan berfungsi di berbagai ukuran layar, saya melakukan pengujian akhir, lalu menjawab semua pertanyaan ini di file README.md.
