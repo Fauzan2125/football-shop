@@ -1,138 +1,189 @@
-from django.shortcuts import render, redirect, get_object_or_404
-from main.models import Product
-from main.forms import ProductForm
-from django.http import HttpResponse
+# main/views.py
+
+import json
+import datetime
+from django.shortcuts import render, get_object_or_404
+from django.urls import reverse
+from django.http import HttpResponse, JsonResponse, HttpResponseRedirect, HttpResponseBadRequest
 from django.core import serializers
-from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
-from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
-import datetime
-from django.http import HttpResponseRedirect
-from django.urls import reverse
+from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
+from django.views.decorators.http import require_POST
 
+from main.models import Product
 
+# --- Page Rendering Views ---
 
-# Create your views here.
 @login_required(login_url='/login')
 def show_main(request):
-    filter_type = request.GET.get("filter", "all")  
+    """Render the main page shell. Data is loaded via AJAX."""
+    context = {'last_login': request.COOKIES.get('last_login', 'Never')}
+    return render(request, "main.html", context)
 
-    if filter_type == "all":
-        product_list = Product.objects.all()
-    else:
-        product_list = Product.objects.filter(user=request.user)
-
-    context = {
-        'npm': '2406344284',
-        'name': request.user.username,
-        'class': 'PBP C',
-        'product_list': product_list,
-        'last_login': request.COOKIES.get('last_login', 'Never')
-    }
-    return render(request, "main.html",context)
-
-@login_required(login_url='/login')
-def create_product(request):
-    form = ProductForm(request.POST or None)
-
-    if form.is_valid() and request.method == 'POST':
-        product_entry = form.save(commit = False)
-        product_entry.user = request.user
-        product_entry.save()
-        return redirect('main:show_main')
-
-    context = {
-        'form': form
-    }
-
-    return render(request, "create_product.html", context)
-
-@login_required(login_url='/login')
-def show_product(request, id):
-    product = get_object_or_404(Product, pk=id)
-    product.increment_views()
-
-    context = {
-        'product': product
-    }
-
-    return render(request, "product_detail.html", context)
-
-def show_xml(request):
-     product_list = Product.objects.all()
-     xml_data = serializers.serialize("xml", product_list)
-     return HttpResponse(xml_data, content_type="application/xml")
-
-def show_json(request):
-    product_list = Product.objects.all()
-    json_data = serializers.serialize("json", product_list)
-    return HttpResponse(json_data, content_type="application/json")
-
-def show_xml_by_id(request, product_id):
-   try:
-       product_item = Product.objects.filter(pk=product_id)
-       xml_data = serializers.serialize("xml", product_item)
-       return HttpResponse(xml_data, content_type="application/xml")
-   except Product.DoesNotExist:
-       return HttpResponse(status=404)
-
-def show_json_by_id(request, product_id):
-   try:
-       product_item = Product.objects.get(pk=product_id)
-       json_data = serializers.serialize("json", [product_item])
-       return HttpResponse(json_data, content_type="application/json")
-   except Product.DoesNotExist:
-       return HttpResponse(status=404)
-   
 def register(request):
-    form = UserCreationForm()
-
-    if request.method == "POST":
-        form = UserCreationForm(request.POST)
-        if form.is_valid():
-            form.save()
-            messages.success(request, 'Your account has been successfully created!')
-            return redirect('main:login')
-    context = {'form':form}
-    return render(request, 'register.html', context)
+    """Render the registration page shell."""
+    return render(request, 'register.html')
 
 def login_user(request):
-   if request.method == 'POST':
-      form = AuthenticationForm(data=request.POST)
-
-      if form.is_valid():
-        user = form.get_user()
-        login(request, user)
-        response = HttpResponseRedirect(reverse("main:show_main"))
-        response.set_cookie('last_login', str(datetime.datetime.now()))
-        return response
-
-   else:
-      form = AuthenticationForm(request)
-   context = {'form': form}
-   return render(request, 'login.html', context)
+    """Render the login page shell."""
+    return render(request, 'login.html')
 
 def logout_user(request):
+    """Handle user logout and redirect."""
     logout(request)
     response = HttpResponseRedirect(reverse('main:login'))
     response.delete_cookie('last_login')
     return response
 
-def edit_product(request, id):
-    product = get_object_or_404(Product, pk=id)
-    form = ProductForm(request.POST or None, instance=product)
-    if form.is_valid() and request.method == 'POST':
-        form.save()
-        return redirect('main:show_main')
+# --- AJAX API Views ---
 
-    context = {
-        'form': form
+@login_required(login_url='/login')
+def get_products_json(request):
+    """API endpoint to get products in JSON format, with filtering."""
+    filter_type = request.GET.get("filter")
+    products = Product.objects.filter(user=request.user) if filter_type == "my" else Product.objects.all()
+    
+    data = [{
+        "id": str(product.id), "name": product.name, "brand": product.brand,
+        "category": product.get_category_display(), "size": product.get_size_display(),
+        "description": product.description, "price": product.price, "stock": product.stock,
+        "thumbnail": product.thumbnail or "", "is_featured": product.is_featured,
+        "user_id": product.user.id if product.user else None,
+    } for product in products]
+    
+    return JsonResponse(data, safe=False)
+
+@login_required(login_url='/login')
+@require_POST
+def add_product_ajax(request):
+    """API endpoint to add a new product."""
+    try:
+        Product.objects.create(
+            user=request.user, name=request.POST.get("name"), price=int(request.POST.get("price")),
+            description=request.POST.get("description"), category=request.POST.get("category"),
+            stock=int(request.POST.get("stock")), brand=request.POST.get("brand"),
+            size=request.POST.get("size"), thumbnail=request.POST.get("thumbnail"),
+            is_featured=request.POST.get("is_featured") == 'on'
+        )
+        return HttpResponse(b"CREATED", status=201)
+    except (ValueError, TypeError) as e:
+        return HttpResponseBadRequest(f"Invalid data: {e}")
+
+@login_required(login_url='/login')
+@require_POST
+def delete_product_ajax(request, id):
+    """API endpoint to delete a product."""
+    try:
+        product = Product.objects.get(pk=id)
+
+        # --- KODE DEBUGGING DIMULAI ---
+        print("--- DEBUGGING DELETE PRODUCT ---")
+        print(f"Product Name: {product.name}")
+        print(f"Product Owner: {product.user} (ID: {product.user.id if product.user else 'None'})")
+        print(f"Request User: {request.user} (ID: {request.user.id})")
+        print(f"Apakah user sama? -> {product.user == request.user}")
+        print("------------------------------")
+        # --- KODE DEBUGGING SELESAI ---
+
+        if product.user == request.user:
+            product.delete()
+            return HttpResponse(b"DELETED", status=200)
+        else:
+            return HttpResponse(b"FORBIDDEN", status=403)
+    except Product.DoesNotExist:
+        return HttpResponse(b"NOT FOUND", status=404)
+
+@login_required(login_url='/login')
+def get_product_detail_json(request, id):
+    """API endpoint to get a single product's details for editing."""
+    product = get_object_or_404(Product, pk=id)
+    if product.user != request.user:
+        return JsonResponse({"status": "forbidden"}, status=403)
+    
+    data = {
+        "id": str(product.id), "name": product.name, "brand": product.brand,
+        "category": product.category, "size": product.size, "description": product.description,
+        "price": product.price, "stock": product.stock, "thumbnail": product.thumbnail or "",
+        "is_featured": product.is_featured,
     }
+    return JsonResponse(data)
 
-    return render(request, "edit_product.html", context)
+@login_required(login_url='/login')
+@require_POST
+def edit_product_ajax(request, id):
+    """API endpoint to update an existing product."""
+    try:
+        product = Product.objects.get(pk=id)
 
-def delete_product(request, id):
+        # --- KODE DEBUGGING DIMULAI ---
+        print("--- DEBUGGING EDIT PRODUCT ---")
+        print(f"Product Name: {product.name}")
+        print(f"Product Owner: {product.user} (ID: {product.user.id if product.user else 'None'})")
+        print(f"Request User: {request.user} (ID: {request.user.id})")
+        print(f"Apakah user sama? -> {product.user == request.user}")
+        print("------------------------------")
+        # --- KODE DEBUGGING SELESAI ---
+
+        if product.user != request.user:
+            return HttpResponse(b"FORBIDDEN", status=403)
+
+        product.name = request.POST.get("name", product.name)
+        product.price = int(request.POST.get("price", product.price))
+        product.description = request.POST.get("description", product.description)
+        product.category = request.POST.get("category", product.category)
+        product.stock = int(request.POST.get("stock", product.stock))
+        product.brand = request.POST.get("brand", product.brand)
+        product.size = request.POST.get("size", product.size)
+        product.thumbnail = request.POST.get("thumbnail", product.thumbnail)
+        product.is_featured = request.POST.get("is_featured") == 'on'
+        product.save()
+        return HttpResponse(b"UPDATED", status=200)
+
+    except Product.DoesNotExist:
+        return HttpResponse(b"NOT FOUND", status=404)
+    except (ValueError, TypeError):
+        return HttpResponseBadRequest("Invalid data")
+
+@require_POST
+def register_ajax(request):
+    """API endpoint for user registration."""
+    form = UserCreationForm(request.POST)
+    if form.is_valid():
+        form.save()
+        return JsonResponse({"status": "success", "message": "Account created successfully!"}, status=201)
+    errors = json.loads(form.errors.as_json())
+    return JsonResponse({"status": "error", "errors": errors}, status=400)
+
+@require_POST
+def login_ajax(request):
+    """API endpoint for user login."""
+    form = AuthenticationForm(request, data=request.POST)
+    if form.is_valid():
+        user = form.get_user()
+        login(request, user)
+        response = JsonResponse({"status": "success", "message": "Login successful!"})
+        response.set_cookie('last_login', str(datetime.datetime.now()))
+        return response
+    return JsonResponse({"status": "error", "message": "Invalid username or password."}, status=400)
+
+@login_required(login_url='/login')
+def get_product_for_detail_view_json(request, id):
+    """API endpoint to get a single product's full details for viewing."""
     product = get_object_or_404(Product, pk=id)
-    product.delete()
-    return HttpResponseRedirect(reverse('main:show_main'))
+    product.increment_views() # Menambah view count setiap kali detail dilihat
+
+    data = {
+        "name": product.name,
+        "brand": product.brand,
+        "category": product.get_category_display(),
+        "size": product.get_size_display(),
+        "description": product.description,
+        "price": product.price,
+        "stock": product.stock,
+        "thumbnail": product.thumbnail or "",
+        "product_views": product.product_views,
+        "user_username": product.user.username if product.user else "Anonymous",
+        "is_featured": product.is_featured,
+    }
+    return JsonResponse(data)

@@ -2,7 +2,7 @@ Aplikasi Football Shop - Moy's Football Store
 
 https://ahmad-fauzan45-footballshop.pbp.cs.ui.id
 
-TUGAS 2
+# TUGAS 2
 
 A. - Jelaskan bagaimana cara kamu mengimplementasikan checklist di atas secara step-by-step (bukan hanya sekadar mengikuti tutorial). -
 
@@ -104,7 +104,7 @@ F. - Apakah ada feedback untuk asisten dosen tutorial 1 yang telah kamu kerjakan
 - Penjelasan konsep MVT sangat membantu pemahaman
 - Apresiasi untuk respon asdos yang cepat dalam menjawab pertanyaan
 
-TUGAS 3
+# TUGAS 3
 
 A. - Jelaskan mengapa kita memerlukan data delivery dalam pengimplementasian sebuah platform? -
 Bayangkan platform digital itu seperti restoran. Dapur (backend) adalah tempat semua makanan (data) diolah, sementara meja makan (frontend) adalah tempat pelanggan (pengguna) menikmatinya. Nah, data delivery adalah pelayan yang bolak-balik mengantar pesanan dari meja ke dapur dan mengantar makanan dari dapur ke meja. Tanpa "pelayan" ini, aplikasi di HP kita nggak akan pernah bisa berkomunikasi dengan server untuk memesan ojek, melihat status pesanan, atau membayar tagihan. Jadi, data delivery adalah penghubung vital yang membuat seluruh bagian platform bisa "ngobrol" dan bekerja sama, baik di dalam aplikasi itu sendiri maupun dengan layanan pihak ketiga (seperti sistem pembayaran).
@@ -145,7 +145,7 @@ F. - Apakah ada feedback untuk asdos di tutorial 2 yang sudah kalian kerjakan? -
 Link Screenshoot Postman:
 https://drive.google.com/drive/folders/1Bh7MzWwoqIGo3-CqQlO00IzbBvTO0A2w?usp=sharing
 
-TUGAS 4
+# TUGAS 4
 
 A. - Apa itu Django AuthenticationForm? Jelaskan juga kelebihan dan kekurangannya. -
 Django AuthenticationForm adalah sebuah form bawaan dari Django yang secara khusus dirancang untuk menangani proses login pengguna. Form ini sudah jadi dan siap pakai, isinya ada dua field utama: username dan password.
@@ -218,7 +218,7 @@ E. - Jelaskan bagaimana cara kamu mengimplementasikan checklist di atas secara s
 - Di halaman utama, saya memfilter agar produk yang ditampilkan hanya produk milik pengguna yang sedang login. Saya juga menambahkan kode untuk menampilkan username dan last_login dari cookie.
 6. Membuat Data Dummy: Terakhir, saya mendaftarkan 2 akun pengguna baru dan untuk masing-masing akun, saya membuat 3 data produk melalui aplikasi yang sudah berjalan untuk memenuhi syarat tugas.
 
-TUGAS 5
+# TUGAS 5
 
 A. - Jika terdapat beberapa CSS selector untuk suatu elemen HTML, jelaskan urutan prioritas pengambilan CSS selector tersebut! -
  
@@ -336,3 +336,42 @@ Kemudian, saya mendesain ulang file card_product.html secara total agar lebih co
 5. Pembuatan Navbar Responsif: Terakhir, saya membuat komponen navbar. Saya merancangnya dengan pendekatan desktop-first, lalu menambahkan kelas md:hidden dan hidden md:block untuk mengatur elemen mana yang muncul atau hilang di layar mobile. Saya juga menambahkan sedikit JavaScript untuk fungsionalitas tombol hamburger dan dropdown user.
 
 6. Finishing dan Penulisan README: Setelah semua halaman terlihat bagus dan berfungsi di berbagai ukuran layar, saya melakukan pengujian akhir, lalu menjawab semua pertanyaan ini di file README.md.
+
+# TUGAS 6
+
+A. Apa perbedaan antara synchronous request dan asynchronous request?
+Perbedaan utama terletak pada cara browser menangani komunikasi dengan server dan dampaknya pada pengguna.
+- Synchronous Request (Sinkron): Ini adalah model permintaan tradisional. Ketika pengguna melakukan aksi (misalnya mengklik link), browser mengirim permintaan ke server dan berhenti total (blocking). Pengguna tidak bisa berinteraksi dengan halaman dan harus menunggu sampai server mengirimkan kembali seluruh halaman HTML yang baru. Proses ini ditandai dengan full page reload di mana halaman sering kali menjadi putih sesaat.
+- Asynchronous Request (Asinkron): Ini adalah model yang digunakan oleh AJAX. Ketika pengguna melakukan aksi, JavaScript mengirim permintaan ke server di latar belakang (non-blocking).  Pengguna tetap bisa berinteraksi dengan halaman—menggulir, mengklik, atau mengetik—sementara browser menunggu respons. Ketika data dari server tiba (biasanya dalam format JSON), JavaScript akan memperbarui hanya bagian tertentu dari halaman yang relevan tanpa perlu me-reload seluruh halaman. 
+
+B. Bagaimana AJAX bekerja di Django (alur request–response)?
+Alur kerja AJAX di Django yang telah kita implementasikan adalah sebagai berikut:
+- Aksi Pengguna (Client): Pengguna memicu sebuah event di browser, seperti mengklik tombol "Delete" atau "Submit" pada form modal. 
+- JavaScript (Client): Event listener di JavaScript akan menjalankan sebuah fungsi. Fungsi ini menggunakan fetch() API untuk mengirim request HTTP (bisa GET atau POST) ke URL spesifik yang telah kita daftarkan di Django. 
+- URL Routing (Django): Django menerima request tersebut dan melalui urls.py, mencocokkan URL yang diminta dengan sebuah view function di views.py.
+- View (Django): View function yang sesuai akan dieksekusi. View ini melakukan logika backend seperti memvalidasi data, berinteraksi dengan database (membuat, mengambil, atau menghapus objek Product), dan lain-lain. Alih-alih me-render template HTML, view ini mengembalikan JsonResponse yang berisi data atau status keberhasilan dalam format JSON. 
+- Respons Server (Django): Server Django mengirimkan kembali respons JSON tersebut ke browser. 
+- JavaScript (Client): Fungsi fetch() di JavaScript menerima respons JSON ini.
+- DOM Manipulation (Client): JavaScript kemudian memproses data dari respons tersebut untuk memanipulasi DOM secara dinamis. Contohnya, menampilkan notifikasi toast, menambahkan elemen kartu produk baru, menghapus elemen dari halaman, atau menampilkan pesan error, semuanya tanpa me-refresh halaman. 
+
+C. Apa keuntungan menggunakan AJAX dibandingkan render biasa di Django?
+Menggunakan AJAX memberikan beberapa keuntungan signifikan dibandingkan dengan rendering template Django biasa:
+- Pengalaman Pengguna (UX) yang Lebih Baik: Aplikasi terasa jauh lebih cepat dan responsif karena tidak ada lagi full page reload yang mengganggu. Interaksi terasa instan, mirip seperti menggunakan aplikasi desktop.
+- Efisiensi Bandwidth dan Server: AJAX hanya mentransfer data yang benar-benar dibutuhkan (biasanya dalam format JSON yang ringan), bukan seluruh halaman HTML beserta aset-asetnya. Ini mengurangi beban pada server dan menghemat penggunaan data pengguna.
+- Interaktivitas Tinggi: AJAX memungkinkan halaman untuk diperbarui secara real-time. Pengguna bisa mendapatkan umpan balik langsung, seperti saat menghapus item dari daftar, item tersebut langsung hilang dari layar tanpa harus memuat ulang seluruh daftar. 
+- Pemisahan Logika (Separation of Concerns): Mendorong arsitektur di mana backend (Django) fokus menjadi penyedia API data, sementara frontend (JavaScript) fokus pada tampilan dan interaksi pengguna.
+
+D. Bagaimana cara memastikan keamanan saat menggunakan AJAX untuk fitur Login dan Register di Django?
+Keamanan pada fitur otentikasi berbasis AJAX sangat krusial. Berikut adalah beberapa cara untuk memastikannya:
+- Gunakan HTTPS: Seluruh komunikasi antara klien dan server harus dienkripsi menggunakan HTTPS untuk melindungi data sensitif seperti password agar tidak bisa diintip saat transit.
+- Proteksi CSRF (Cross-Site Request Forgery): Setiap request yang mengubah data (terutama POST seperti pada login dan register) harus dilindungi oleh token CSRF. Dalam implementasi kita, JavaScript mengambil token CSRF dari halaman dan mengirimkannya melalui header X-CSRFToken pada setiap request POST. Di sisi backend, Django secara otomatis memvalidasi token ini.
+- Validasi di Sisi Server: Jangan pernah percaya input dari pengguna. Selalu gunakan form Django (UserCreationForm dan AuthenticationForm) di backend untuk memvalidasi dan membersihkan semua data yang masuk. Ini adalah lapisan pertahanan utama terhadap serangan seperti SQL Injection.
+- Hindari Mengekspos Informasi Sensitif: Respons JSON dari server tidak boleh berisi informasi sensitif. Misalnya, jika login gagal, cukup kembalikan pesan umum seperti "Invalid username or password" daripada "Password salah untuk user X".
+- Terapkan Rate Limiting: Untuk mencegah serangan brute-force (mencoba banyak password secara otomatis), batasi jumlah percobaan login yang gagal dari satu alamat IP dalam periode waktu tertentu.
+
+E. Bagaimana AJAX mempengaruhi pengalaman pengguna (User Experience) pada website?
+AJAX secara fundamental mengubah dan meningkatkan User Experience (UX) dengan membuat website terasa lebih hidup, cepat, dan intuitif.
+- Responsivitas dan Kecepatan: Efek paling terasa adalah kecepatan. Karena tidak ada jeda "layar putih" dari full page reload, pengguna mendapatkan umpan balik visual yang instan atas aksi mereka. Menghapus produk terasa seketika, begitu pula saat produk baru muncul di layar. 
+- Interaksi yang Mulus: Pengguna dapat melakukan aksi tanpa kehilangan konteks atau posisi mereka di halaman. Contohnya, setelah menambahkan produk melalui modal, pengguna tetap berada di posisi scroll yang sama di halaman utama, dengan produk baru yang sudah ditambahkan. Ini menciptakan alur kerja yang tidak terputus.
+- Umpan Balik yang Informatif: Dengan AJAX, kita bisa memberikan umpan balik yang lebih spesifik. Notifikasi toast ("Produk berhasil ditambahkan!") atau pesan error yang muncul tanpa me-refresh halaman memberikan konfirmasi atau panduan yang jelas kepada pengguna.
+- Terasa Seperti Aplikasi Desktop: Kombinasi dari semua hal di atas membuat website terasa lebih seperti aplikasi desktop atau aplikasi mobile yang dinamis daripada sekadar kumpulan dokumen statis yang terhubung oleh link.
