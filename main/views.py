@@ -1,11 +1,8 @@
-# main/views.py
-
 import json
 import datetime
 from django.shortcuts import render, get_object_or_404
 from django.urls import reverse
 from django.http import HttpResponse, JsonResponse, HttpResponseRedirect, HttpResponseBadRequest
-from django.core import serializers
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
@@ -55,6 +52,20 @@ def get_products_json(request):
     return JsonResponse(data, safe=False)
 
 @login_required(login_url='/login')
+def get_product_for_detail_view_json(request, id):
+    """API endpoint to get a single product's full details for viewing."""
+    product = get_object_or_404(Product, pk=id)
+    product.increment_views() 
+
+    data = {
+        "name": product.name, "brand": product.brand, "category": product.get_category_display(),
+        "size": product.get_size_display(), "description": product.description, "price": product.price,
+        "stock": product.stock, "thumbnail": product.thumbnail or "", "product_views": product.product_views,
+        "user_username": product.user.username if product.user else "Anonymous", "is_featured": product.is_featured,
+    }
+    return JsonResponse(data)
+
+@login_required(login_url='/login')
 @require_POST
 def add_product_ajax(request):
     """API endpoint to add a new product."""
@@ -75,22 +86,11 @@ def add_product_ajax(request):
 def delete_product_ajax(request, id):
     """API endpoint to delete a product."""
     try:
-        product = Product.objects.get(pk=id)
-
-        # --- KODE DEBUGGING DIMULAI ---
-        print("--- DEBUGGING DELETE PRODUCT ---")
-        print(f"Product Name: {product.name}")
-        print(f"Product Owner: {product.user} (ID: {product.user.id if product.user else 'None'})")
-        print(f"Request User: {request.user} (ID: {request.user.id})")
-        print(f"Apakah user sama? -> {product.user == request.user}")
-        print("------------------------------")
-        # --- KODE DEBUGGING SELESAI ---
-
+        product = get_object_or_404(Product, pk=id)
         if product.user == request.user:
             product.delete()
             return HttpResponse(b"DELETED", status=200)
-        else:
-            return HttpResponse(b"FORBIDDEN", status=403)
+        return HttpResponse(b"FORBIDDEN", status=403)
     except Product.DoesNotExist:
         return HttpResponse(b"NOT FOUND", status=404)
 
@@ -102,10 +102,9 @@ def get_product_detail_json(request, id):
         return JsonResponse({"status": "forbidden"}, status=403)
     
     data = {
-        "id": str(product.id), "name": product.name, "brand": product.brand,
-        "category": product.category, "size": product.size, "description": product.description,
-        "price": product.price, "stock": product.stock, "thumbnail": product.thumbnail or "",
-        "is_featured": product.is_featured,
+        "id": str(product.id), "name": product.name, "brand": product.brand, "category": product.category,
+        "size": product.size, "description": product.description, "price": product.price,
+        "stock": product.stock, "thumbnail": product.thumbnail or "", "is_featured": product.is_featured,
     }
     return JsonResponse(data)
 
@@ -114,17 +113,7 @@ def get_product_detail_json(request, id):
 def edit_product_ajax(request, id):
     """API endpoint to update an existing product."""
     try:
-        product = Product.objects.get(pk=id)
-
-        # --- KODE DEBUGGING DIMULAI ---
-        print("--- DEBUGGING EDIT PRODUCT ---")
-        print(f"Product Name: {product.name}")
-        print(f"Product Owner: {product.user} (ID: {product.user.id if product.user else 'None'})")
-        print(f"Request User: {request.user} (ID: {request.user.id})")
-        print(f"Apakah user sama? -> {product.user == request.user}")
-        print("------------------------------")
-        # --- KODE DEBUGGING SELESAI ---
-
+        product = get_object_or_404(Product, pk=id)
         if product.user != request.user:
             return HttpResponse(b"FORBIDDEN", status=403)
 
@@ -139,9 +128,6 @@ def edit_product_ajax(request, id):
         product.is_featured = request.POST.get("is_featured") == 'on'
         product.save()
         return HttpResponse(b"UPDATED", status=200)
-
-    except Product.DoesNotExist:
-        return HttpResponse(b"NOT FOUND", status=404)
     except (ValueError, TypeError):
         return HttpResponseBadRequest("Invalid data")
 
@@ -166,24 +152,3 @@ def login_ajax(request):
         response.set_cookie('last_login', str(datetime.datetime.now()))
         return response
     return JsonResponse({"status": "error", "message": "Invalid username or password."}, status=400)
-
-@login_required(login_url='/login')
-def get_product_for_detail_view_json(request, id):
-    """API endpoint to get a single product's full details for viewing."""
-    product = get_object_or_404(Product, pk=id)
-    product.increment_views() # Menambah view count setiap kali detail dilihat
-
-    data = {
-        "name": product.name,
-        "brand": product.brand,
-        "category": product.get_category_display(),
-        "size": product.get_size_display(),
-        "description": product.description,
-        "price": product.price,
-        "stock": product.stock,
-        "thumbnail": product.thumbnail or "",
-        "product_views": product.product_views,
-        "user_username": product.user.username if product.user else "Anonymous",
-        "is_featured": product.is_featured,
-    }
-    return JsonResponse(data)
