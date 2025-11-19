@@ -2,10 +2,10 @@
 
 from django.urls import path
 from main.views import (
-    show_main, register, login_user, logout_user,
+    create_product_flutter, show_main, register, login_user, logout_user,
     get_products_json, add_product_ajax, delete_product_ajax,
     get_product_detail_json, edit_product_ajax,
-    register_ajax, login_ajax, get_product_for_detail_view_json
+    register_ajax, login_ajax, get_product_for_detail_view_json, proxy_image
 )
 
 app_name = 'main'
@@ -19,6 +19,7 @@ urlpatterns = [
 
     # Product AJAX API
     path('get-products/', get_products_json, name='get_products_json'),
+    path('json/', get_products_json, name='get_products_json_alias'),
     path('add-product-ajax/', add_product_ajax, name='add_product_ajax'),
     path('delete-product-ajax/<uuid:id>/', delete_product_ajax, name='delete_product_ajax'),
     path('get-product-detail-json/<uuid:id>/', get_product_detail_json, name='get_product_detail_json'),
@@ -28,4 +29,7 @@ urlpatterns = [
     # Auth AJAX API
     path('register-ajax/', register_ajax, name='register_ajax'),
     path('login-ajax/', login_ajax, name='login_ajax'),
+
+    path('proxy-image/', proxy_image, name='proxy_image'),
+    path('create-flutter/', create_product_flutter, name='create_product_flutter'),
 ]
